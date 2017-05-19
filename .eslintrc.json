@@ -1,0 +1,7 @@
+{
+    "extends": "vexera",
+    "plugins": [
+        "standard",
+        "promise"
+    ]
+}
