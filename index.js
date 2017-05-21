@@ -16,6 +16,9 @@ class Worker extends EventEmitter {
     this.shutdown = false;
   }
 
+  /**
+   * Connects to the cluster manager
+   */
   connect() {
     this.ws = new WebSocket(this.host);
     this.ws.on('open', this.onConnect.bind(this));
@@ -23,14 +26,25 @@ class Worker extends EventEmitter {
     this.ws.on('error', this.onError.bind(this));
   }
 
+  /**
+   * Sends data to the websocket
+   * @param  {Object?} obj The data to send
+   */
   sendWS(obj) {
     this.ws.send(JSON.stringify(obj));
   }
 
+  /**
+   * Called when an error happens
+   * @param  {Error} error The error
+   */
   onError(error) {
     this.emit('error', error);
   }
 
+  /**
+   * Called when the websocket connects
+   */
   onConnect() {
     this.attempts = 1;
     this.connected = true;
@@ -41,6 +55,11 @@ class Worker extends EventEmitter {
     });
   }
 
+  /**
+   * Called when the websocket disconnects
+   * @param  {Number} code    The disconnect code
+   * @param  {String} message The message sent with the disconnect
+   */
   onDisconnect(code, message) {
     if(this.shutdown) return;
     this.emit('error', message);
@@ -49,6 +68,10 @@ class Worker extends EventEmitter {
     this.connect();
   }
 
+  /**
+   * Pings the cluster manager
+   * @param  {String} [id=uuid()] An ID to reqresent the request
+   */
   ping(id = uuid()) {
     return new Promise((resolve, reject) => {
       const startTime = new Date().getTime();
@@ -62,14 +85,35 @@ class Worker extends EventEmitter {
     });
   }
 
-  request(to, data) {
+  /**
+   * Makes a request
+   * @param  {String} to   Where to send the request to
+   * @param  {Object} data The data to send
+   * @param  {String} id   The ID for the request
+   */
+  request(to, data, id = uuid()) {
     this.sendWS({
       op: OPCODES.request,
       to,
-      data
+      data,
+      id
     });
+
+    return id;
   }
 
+  awaitRequest(to, data, id = uuid()) {
+    return new Promise((resolve, reject) => {
+      this.request(to, data, id);
+      this.once(`resolve_${id}`, resolve);
+    })
+  }
+
+  /**
+   * Resolves a request
+   * @param  {String} id   The ID of the request
+   * @param  {Object} data The resolved data
+   */
   resolve(id, data) {
     this.sendWS({
       op: OPCODES.resolve,
@@ -78,6 +122,10 @@ class Worker extends EventEmitter {
     });
   }
 
+  /**
+   * Called when the websocket recieves a message
+   * @param  {Object} msg The message
+   */
   onMessage(msg) {
     this.emit('message', msg);
     switch (msg.op) {
