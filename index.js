@@ -62,6 +62,22 @@ class Worker extends EventEmitter {
     });
   }
 
+  request(to, data) {
+    this.sendWS({
+      op: OPCODES.request,
+      to,
+      data
+    });
+  }
+
+  resolve(id, data) {
+    this.sendWS({
+      op: OPCODES.resolve,
+      id,
+      data
+    });
+  }
+
   onMessage(msg) {
     this.emit('message', msg);
     switch (msg.op) {
@@ -92,6 +108,14 @@ class Worker extends EventEmitter {
       }
       case OPCODES.pong: {
         this.emit(`pong_${msg.id}`, msg);
+        return;
+      }
+      case OPCODES.resolve: {
+        this.emit(`resolve_${msg.id}`, msg);
+        return;
+      }
+      case OPCODES.request: {
+        this.emit('request', msg.id, msg.data);
       }
     }
   }

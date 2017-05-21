@@ -3,5 +3,7 @@ module.exports = {
   ready: 2,
   shutdown: 3,
   ping: 4,
-  pong: 5
+  pong: 5,
+  request: 6,
+  resolve: 7
 };
