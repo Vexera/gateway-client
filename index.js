@@ -11,6 +11,7 @@ class Worker extends EventEmitter {
     this.secret = secret;
     this.attempts = 0;
     this.range = null;
+    this.count = null;
 
     this.connected = false;
     this.shutdown = false;
@@ -138,7 +139,9 @@ class Worker extends EventEmitter {
         return;
       }
       case OPCODES.ready: {
-        this.emit('range', msg.range);
+        this.range = msg.range;
+        this.count = msg.count;
+        this.emit('range', msg.range, msg.count);
         return;
       }
       case OPCODES.shutdown: {
