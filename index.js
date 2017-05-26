@@ -58,8 +58,8 @@ class Worker extends EventEmitter {
 
   /**
    * Called when the websocket disconnects
-   * @param  {Number} code    The disconnect code
-   * @param  {String} message The message sent with the disconnect
+   * @param  {number} code    The disconnect code
+   * @param  {string} message The message sent with the disconnect
    */
   onDisconnect(code, message) {
     if(this.shutdown) return;
@@ -71,7 +71,8 @@ class Worker extends EventEmitter {
 
   /**
    * Pings the cluster manager
-   * @param  {String} [id=uuid()] An ID to reqresent the request
+   * @param  {string} [id=uuid()] An ID to reqresent the request
+   * @return {number}             The time it took to ping in ms
    */
   ping(id = uuid()) {
     return new Promise((resolve, reject) => {
@@ -82,15 +83,16 @@ class Worker extends EventEmitter {
       });
       this.once(`pong_${id}`, msg => {
         resolve(new Date().getTime() - startTime);
-      })
+      });
     });
   }
 
   /**
    * Makes a request
-   * @param  {String} to   Where to send the request to
+   * @param  {string} to   Where to send the request to
    * @param  {Object} data The data to send
-   * @param  {String} id   The ID for the request
+   * @param  {string} id   The ID for the request
+   * @returns {string} id  The ID for the request
    */
   request(to, data, id = uuid()) {
     this.sendWS({
@@ -103,16 +105,23 @@ class Worker extends EventEmitter {
     return id;
   }
 
+  /**
+   * Awaits a request to the gateway
+   * @param  {string} to          The ID to get data from
+   * @param  {Object} data        The data to send with the request
+   * @param  {string} [id=uuid()] The ID for the request
+   * @return {Promise<Object>}             The result of the request
+   */
   awaitRequest(to, data, id = uuid()) {
     return new Promise((resolve, reject) => {
       this.request(to, data, id);
       this.once(`resolve_${id}`, resolve);
-    })
+    });
   }
 
   /**
    * Resolves a request
-   * @param  {String} id   The ID of the request
+   * @param  {string} id   The ID of the request
    * @param  {Object} data The resolved data
    */
   resolve(id, data) {
@@ -129,7 +138,7 @@ class Worker extends EventEmitter {
    */
   onMessage(msg) {
     this.emit('message', msg);
-    switch (msg.op) {
+    switch(msg.op) {
       case OPCODES.identify: {
         this.sendWS({
           op: OPCODES.identify,

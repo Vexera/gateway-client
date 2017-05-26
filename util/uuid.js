@@ -1,3 +1,5 @@
+/*eslint-disable */
+
 module.exports = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     var r = Math.random() * 16 | 0;
