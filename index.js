@@ -95,6 +95,7 @@ class Worker extends EventEmitter {
    * @returns {string} id  The ID for the request
    */
   request(to, data, id = uuid()) {
+    if(!this.connected) return;
     this.sendWS({
       op: OPCODES.request,
       to,
