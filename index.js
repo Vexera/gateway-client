@@ -143,13 +143,15 @@ class Worker extends EventEmitter {
         this.sendWS({
           op: OPCODES.identify,
           secret: this.secret,
-          range: this.range ? this.range : 'new'
+          range: this.range ? this.range : 'new',
+          id: this.id
         });
         return;
       }
       case OPCODES.ready: {
         this.range = msg.range;
         this.count = msg.count;
+        this.id = msg.id;
         this.emit('range', msg.range, msg.count);
         return;
       }
